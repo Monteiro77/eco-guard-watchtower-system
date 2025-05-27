@@ -1,306 +1,248 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { 
   Thermometer, 
   Wind, 
   Droplets, 
-  Sun, 
-  Cloud, 
-  Eye,
-  Activity,
-  TrendingUp,
-  TrendingDown
+  Eye, 
+  Plus, 
+  Settings,
+  BarChart3,
+  MapPin,
+  Battery,
+  Signal
 } from 'lucide-react';
+import DroneModal from '@/components/Modals/DroneModal';
 
 const MonitoramentoAmbiental = () => {
-  const environmentalData = [
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    mode: 'create' as 'create' | 'edit' | 'view',
+    data: null as any,
+  });
+
+  const openModal = (mode: 'create' | 'edit' | 'view', data: any = null) => {
+    setModalState({ isOpen: true, mode, data });
+  };
+
+  const closeModal = () => {
+    setModalState({ isOpen: false, mode: 'create', data: null });
+  };
+
+  const drones = [
     {
-      station: 'Estação Centro - Cuiabá',
-      temperature: 38,
-      humidity: 25,
-      windSpeed: 18,
-      airQuality: 156,
-      precipitation: 0,
-      status: 'critical',
-      lastUpdate: '5 min atrás'
+      id: 1,
+      name: 'Drone Alpha',
+      model: 'DJI Mavic 3',
+      status: 'Ativo',
+      battery: 85,
+      location: 'Setor Norte',
+      signal: 'Forte',
     },
     {
-      station: 'Estação Pantanal Sul',
-      temperature: 35,
-      humidity: 45,
-      windSpeed: 12,
-      airQuality: 89,
-      precipitation: 2,
-      status: 'warning',
-      lastUpdate: '3 min atrás'
+      id: 2,
+      name: 'Drone Beta',
+      model: 'DJI Air 2S',
+      status: 'Patrulhando',
+      battery: 72,
+      location: 'Zona Rural',
+      signal: 'Médio',
     },
     {
-      station: 'Estação Chapada Norte',
-      temperature: 42,
-      humidity: 15,
-      windSpeed: 25,
-      airQuality: 201,
-      precipitation: 0,
-      status: 'critical',
-      lastUpdate: '1 min atrás'
+      id: 3,
+      name: 'Drone Gamma',
+      model: 'DJI Mini 3',
+      status: 'Manutenção',
+      battery: 15,
+      location: 'Base',
+      signal: 'Forte',
     },
-    {
-      station: 'Estação Várzea Grande',
-      temperature: 36,
-      humidity: 35,
-      windSpeed: 8,
-      airQuality: 78,
-      precipitation: 0,
-      status: 'normal',
-      lastUpdate: '7 min atrás'
-    }
   ];
 
-  const droneData = [
-    {
-      id: 'DRONE-001',
-      location: 'Setor Norte - Chapada',
-      battery: 85,
-      temperature: 41,
-      humidity: 18,
-      fireDetected: true,
-      wildlifeCount: 3,
-      status: 'active'
-    },
-    {
-      id: 'DRONE-002',
-      location: 'Setor Sul - Pantanal',
-      battery: 62,
-      temperature: 36,
-      humidity: 42,
-      fireDetected: false,
-      wildlifeCount: 12,
-      status: 'active'
-    },
-    {
-      id: 'DRONE-003',
-      location: 'Setor Leste - Cerrado',
-      battery: 91,
-      temperature: 39,
-      humidity: 28,
-      fireDetected: true,
-      wildlifeCount: 7,
-      status: 'active'
-    },
-    {
-      id: 'DRONE-004',
-      location: 'Setor Oeste - Fazendas',
-      battery: 23,
-      temperature: 37,
-      humidity: 31,
-      fireDetected: false,
-      wildlifeCount: 1,
-      status: 'returning'
-    }
+  const sensors = [
+    { id: 1, name: 'Sensor Norte', temp: 34, humidity: 45, air_quality: 156, status: 'online' },
+    { id: 2, name: 'Sensor Sul', temp: 32, humidity: 52, air_quality: 142, status: 'online' },
+    { id: 3, name: 'Sensor Leste', temp: 35, humidity: 38, air_quality: 189, status: 'offline' },
+    { id: 4, name: 'Sensor Oeste', temp: 33, humidity: 48, air_quality: 134, status: 'online' },
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'critical': return 'border-red-500 bg-red-50';
-      case 'warning': return 'border-orange-500 bg-orange-50';
-      case 'normal': return 'border-green-500 bg-green-50';
-      default: return 'border-gray-200 bg-white';
+      case 'Ativo':
+      case 'online': return 'bg-green-100 text-green-800';
+      case 'Patrulhando': return 'bg-blue-100 text-blue-800';
+      case 'Manutenção':
+      case 'offline': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getAirQualityLevel = (aqi: number) => {
-    if (aqi <= 50) return { level: 'Bom', color: 'bg-green-600' };
-    if (aqi <= 100) return { level: 'Moderado', color: 'bg-yellow-600' };
-    if (aqi <= 150) return { level: 'Não Saudável', color: 'bg-orange-600' };
-    return { level: 'Perigoso', color: 'bg-red-600' };
+  const getAirQualityStatus = (aqi: number) => {
+    if (aqi <= 50) return { label: 'Bom', color: 'bg-green-500' };
+    if (aqi <= 100) return { label: 'Moderado', color: 'bg-yellow-500' };
+    if (aqi <= 150) return { label: 'Não Saudável', color: 'bg-orange-500' };
+    return { label: 'Perigoso', color: 'bg-red-500' };
+  };
+
+  const getBatteryColor = (battery: number) => {
+    if (battery > 50) return 'text-green-600';
+    if (battery > 20) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Monitoramento Ambiental</h1>
-        <p className="text-gray-600">Dados em tempo real de estações meteorológicas e drones de monitoramento</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Monitoramento Ambiental</h1>
+          <p className="text-gray-600">Dados em tempo real de sensores e drones de monitoramento</p>
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline">
+            <Settings className="w-4 h-4 mr-2" />
+            Configurar
+          </Button>
+          <Button onClick={() => openModal('create')}>
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Drone
+          </Button>
+        </div>
       </div>
 
-      {/* Resumo Geral */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
+      {/* Métricas ambientais */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600">Temp. Máxima</p>
-                <p className="text-xl font-bold text-red-700">42°C</p>
+                <p className="text-sm font-medium text-gray-600">Temperatura Média</p>
+                <p className="text-2xl font-bold text-orange-600">33.5°C</p>
+                <p className="text-xs text-gray-500">+2.3° vs ontem</p>
               </div>
-              <Thermometer className="w-6 h-6 text-red-600" />
+              <Thermometer className="w-8 h-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-4">
+
+        <Card>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600">Umidade Mín.</p>
-                <p className="text-xl font-bold text-blue-700">15%</p>
+                <p className="text-sm font-medium text-gray-600">Umidade</p>
+                <p className="text-2xl font-bold text-blue-600">45.8%</p>
+                <p className="text-xs text-gray-500">-5.2% vs ontem</p>
               </div>
-              <Droplets className="w-6 h-6 text-blue-600" />
+              <Droplets className="w-8 h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="border-gray-200 bg-gray-50">
-          <CardContent className="p-4">
+
+        <Card>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Vento Máx.</p>
-                <p className="text-xl font-bold text-gray-700">25 km/h</p>
+                <p className="text-sm font-medium text-gray-600">Qualidade do Ar</p>
+                <p className="text-2xl font-bold text-red-600">156 AQI</p>
+                <p className="text-xs text-gray-500">Não saudável</p>
               </div>
-              <Wind className="w-6 h-6 text-gray-600" />
+              <Wind className="w-8 h-8 text-red-500" />
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-4">
+
+        <Card>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600">AQI Crítico</p>
-                <p className="text-xl font-bold text-red-700">201</p>
+                <p className="text-sm font-medium text-gray-600">Sensores Ativos</p>
+                <p className="text-2xl font-bold text-green-600">12/15</p>
+                <p className="text-xs text-gray-500">3 offline</p>
               </div>
-              <Activity className="w-6 h-6 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-600">Drones Ativos</p>
-                <p className="text-xl font-bold text-green-700">4/6</p>
-              </div>
-              <Eye className="w-6 h-6 text-green-600" />
+              <BarChart3 className="w-8 h-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Estações Meteorológicas */}
+      {/* Drones ativos */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Cloud className="w-5 h-5 mr-2 text-blue-600" />
-            Estações Meteorológicas
+            <Eye className="w-5 h-5 mr-2 text-blue-600" />
+            Drones de Monitoramento
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {environmentalData.map((station, index) => (
-              <Card key={index} className={getStatusColor(station.status)}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {drones.map((drone) => (
+              <Card key={drone.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <h4 className="font-semibold text-gray-900">{station.station}</h4>
-                    <Badge className={getAirQualityLevel(station.airQuality).color}>
-                      {getAirQualityLevel(station.airQuality).level}
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-semibold">{drone.name}</h3>
+                      <p className="text-sm text-gray-600">{drone.model}</p>
+                    </div>
+                    <Badge className={getStatusColor(drone.status)}>
+                      {drone.status}
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-3 mb-3">
-                    <div className="text-center">
-                      <Thermometer className="w-4 h-4 mx-auto mb-1 text-red-500" />
-                      <p className="text-xs text-gray-600">Temperatura</p>
-                      <p className="font-semibold">{station.temperature}°C</p>
-                    </div>
-                    <div className="text-center">
-                      <Droplets className="w-4 h-4 mx-auto mb-1 text-blue-500" />
-                      <p className="text-xs text-gray-600">Umidade</p>
-                      <p className="font-semibold">{station.humidity}%</p>
-                    </div>
-                    <div className="text-center">
-                      <Wind className="w-4 h-4 mx-auto mb-1 text-gray-500" />
-                      <p className="text-xs text-gray-600">Vento</p>
-                      <p className="font-semibold">{station.windSpeed} km/h</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">AQI: {station.airQuality}</span>
-                    <span className="text-gray-500">{station.lastUpdate}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Monitoramento por Drones */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Eye className="w-5 h-5 mr-2 text-green-600" />
-            Monitoramento por Drones
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {droneData.map((drone, index) => (
-              <Card key={index} className="border-gray-200">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{drone.id}</h4>
-                      <p className="text-sm text-gray-600">{drone.location}</p>
-                    </div>
-                    <Badge className={
-                      drone.status === 'active' ? 'bg-green-600' : 
-                      drone.status === 'returning' ? 'bg-yellow-600' : 'bg-gray-600'
-                    }>
-                      {drone.status === 'active' ? 'Ativo' : 
-                       drone.status === 'returning' ? 'Retornando' : 'Inativo'}
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                      <p className="text-xs text-gray-600">Bateria</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                          <div 
-                            className={`h-2 rounded-full ${
-                              drone.battery > 50 ? 'bg-green-500' : 
-                              drone.battery > 20 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}
-                            style={{ width: `${drone.battery}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-semibold">{drone.battery}%</span>
+                        <Battery className={`w-4 h-4 mr-2 ${getBatteryColor(drone.battery)}`} />
+                        <span className="text-sm">Bateria</span>
                       </div>
+                      <span className={`text-sm font-medium ${getBatteryColor(drone.battery)}`}>
+                        {drone.battery}%
+                      </span>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Temperatura</p>
-                      <p className="font-semibold">{drone.temperature}°C</p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                        <span className="text-sm">Localização</span>
+                      </div>
+                      <span className="text-sm">{drone.location}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Signal className="w-4 h-4 mr-2 text-gray-500" />
+                        <span className="text-sm">Sinal</span>
+                      </div>
+                      <span className="text-sm">{drone.signal}</span>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div>
-                      <p className="text-xs text-gray-600">Umidade</p>
-                      <p className="font-semibold">{drone.humidity}%</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Fogo</p>
-                      <p className={`font-semibold ${drone.fireDetected ? 'text-red-600' : 'text-green-600'}`}>
-                        {drone.fireDetected ? '🔥 Sim' : '✅ Não'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600">Fauna</p>
-                      <p className="font-semibold">🦌 {drone.wildlifeCount}</p>
-                    </div>
+                  <div className="flex space-x-2 mt-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => openModal('view', drone)}
+                    >
+                      Ver Detalhes
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => openModal('edit', drone)}
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -309,20 +251,63 @@ const MonitoramentoAmbiental = () => {
         </CardContent>
       </Card>
 
-      {/* Gráfico de Tendências */}
+      {/* Sensores ambientais */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />
-            Tendências Ambientais (Últimas 24h)
-          </CardTitle>
+          <CardTitle>Estações de Monitoramento</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-64 bg-gradient-to-br from-blue-50 to-green-50 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500">Gráfico de tendências ambientais seria renderizado aqui</p>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Sensor</TableHead>
+                <TableHead>Temperatura</TableHead>
+                <TableHead>Umidade</TableHead>
+                <TableHead>Qualidade do Ar</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sensors.map((sensor) => {
+                const airQuality = getAirQualityStatus(sensor.air_quality);
+                return (
+                  <TableRow key={sensor.id}>
+                    <TableCell className="font-medium">{sensor.name}</TableCell>
+                    <TableCell>{sensor.temp}°C</TableCell>
+                    <TableCell>{sensor.humidity}%</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <span>{sensor.air_quality}</span>
+                        <Badge className={`${airQuality.color} text-white`}>
+                          {airQuality.label}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(sensor.status)}>
+                        {sensor.status === 'online' ? 'Online' : 'Offline'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm">
+                        <Settings className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
+
+      <DroneModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        droneData={modalState.data}
+        mode={modalState.mode}
+      />
     </div>
   );
 };
