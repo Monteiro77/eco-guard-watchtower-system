@@ -368,7 +368,7 @@ const MonitoramentoAmbiental = () => {
         isOpen={filterModalOpen}
         onClose={() => setFilterModalOpen(false)}
         onApplyFilters={handleApplyFilters}
-        filterType="environmental"
+        filterType="general"
       />
 
       <ExportModal

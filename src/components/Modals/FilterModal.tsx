@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithRange } from '@/components/ui/date-picker';
+import { DateRange } from "react-day-picker"
 
 interface FilterModalProps {
   isOpen: boolean;
@@ -34,12 +35,12 @@ const FilterModal: React.FC<FilterModalProps> = ({
   filterType 
 }) => {
   const [filters, setFilters] = useState({
-    dateRange: null,
-    status: [],
-    severity: [],
-    type: [],
+    dateRange: undefined as DateRange | undefined,
+    status: [] as string[],
+    severity: [] as string[],
+    type: [] as string[],
     location: '',
-    department: [],
+    department: [] as string[],
   });
 
   const handleApply = () => {
@@ -49,13 +50,22 @@ const FilterModal: React.FC<FilterModalProps> = ({
 
   const handleReset = () => {
     setFilters({
-      dateRange: null,
+      dateRange: undefined,
       status: [],
       severity: [],
       type: [],
       location: '',
       department: [],
     });
+  };
+
+  const handleCheckboxChange = (field: keyof typeof filters, value: string, checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: checked 
+        ? [...(prev[field] as string[]), value]
+        : (prev[field] as string[]).filter(item => item !== value)
+    }));
   };
 
   const getFilterOptions = () => {
@@ -77,6 +87,11 @@ const FilterModal: React.FC<FilterModalProps> = ({
           statuses: ['Ativo', 'Patrulhando', 'Manutenção', 'Inativo'],
           types: ['DJI Mavic 3', 'DJI Air 2S', 'DJI Mini 3'],
         };
+      case 'general':
+        return {
+          statuses: ['Ativo', 'Patrulhando', 'Manutenção', 'Inativo'],
+          types: ['Monitoramento', 'Qualidade do Ar', 'Meteorológica', 'Umidade', 'Temperatura'],
+        };
       default:
         return {
           statuses: ['Ativo', 'Inativo'],
@@ -97,14 +112,9 @@ const FilterModal: React.FC<FilterModalProps> = ({
         <div className="space-y-6">
           <div className="space-y-2">
             <Label>Período</Label>
-            <Input
-              type="date"
-              placeholder="Data inicial"
-              className="mb-2"
-            />
-            <Input
-              type="date"
-              placeholder="Data final"
+            <DatePickerWithRange
+              date={filters.dateRange}
+              onDateChange={(dateRange) => setFilters({ ...filters, dateRange })}
             />
           </div>
 
@@ -114,7 +124,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 {options.statuses.map((status) => (
                   <div key={status} className="flex items-center space-x-2">
-                    <Checkbox id={status} />
+                    <Checkbox 
+                      id={status}
+                      checked={filters.status.includes(status)}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange('status', status, checked as boolean)
+                      }
+                    />
                     <Label htmlFor={status}>{status}</Label>
                   </div>
                 ))}
@@ -128,7 +144,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 {options.severities.map((severity) => (
                   <div key={severity} className="flex items-center space-x-2">
-                    <Checkbox id={severity} />
+                    <Checkbox 
+                      id={severity}
+                      checked={filters.severity.includes(severity)}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange('severity', severity, checked as boolean)
+                      }
+                    />
                     <Label htmlFor={severity}>{severity}</Label>
                   </div>
                 ))}
@@ -142,7 +164,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 {options.types.map((type) => (
                   <div key={type} className="flex items-center space-x-2">
-                    <Checkbox id={type} />
+                    <Checkbox 
+                      id={type}
+                      checked={filters.type.includes(type)}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange('type', type, checked as boolean)
+                      }
+                    />
                     <Label htmlFor={type}>{type}</Label>
                   </div>
                 ))}
@@ -156,7 +184,13 @@ const FilterModal: React.FC<FilterModalProps> = ({
               <div className="space-y-2">
                 {options.departments.map((dept) => (
                   <div key={dept} className="flex items-center space-x-2">
-                    <Checkbox id={dept} />
+                    <Checkbox 
+                      id={dept}
+                      checked={filters.department.includes(dept)}
+                      onCheckedChange={(checked) => 
+                        handleCheckboxChange('department', dept, checked as boolean)
+                      }
+                    />
                     <Label htmlFor={dept}>{dept}</Label>
                   </div>
                 ))}
