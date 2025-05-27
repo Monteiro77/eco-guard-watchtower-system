@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,42 @@ import {
   Clock,
   Filter,
   Search,
-  Share2
+  Share2,
+  Plus
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import FilterModal from '@/components/Modals/FilterModal';
+import ExportModal from '@/components/Modals/ExportModal';
+import ShareModal from '@/components/Modals/ShareModal';
+import ReportGeneratorModal from '@/components/Modals/ReportGeneratorModal';
 
 const Relatorios = () => {
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [reportGeneratorOpen, setReportGeneratorOpen] = useState(false);
+  const [shareModalState, setShareModalState] = useState({
+    isOpen: false,
+    itemTitle: '',
+    itemType: '',
+  });
+
+  const handleApplyFilters = (filters: any) => {
+    console.log('Aplicando filtros:', filters);
+  };
+
+  const handleGenerateReport = (config: any) => {
+    console.log('Gerando relatório:', config);
+    alert('Relatório sendo gerado...');
+  };
+
+  const openShareModal = (report: any) => {
+    setShareModalState({
+      isOpen: true,
+      itemTitle: report.title,
+      itemType: 'Relatório',
+    });
+  };
+
   const reports = [
     {
       id: 'REL-2024-001',
@@ -174,7 +204,7 @@ const Relatorios = () => {
                   className="pl-10 w-64"
                 />
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setFilterModalOpen(true)}>
                 <Filter className="w-4 h-4 mr-1" />
                 Filtros
               </Button>
@@ -182,8 +212,8 @@ const Relatorios = () => {
                 <Calendar className="w-4 h-4 mr-1" />
                 Período
               </Button>
-              <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                <FileText className="w-4 h-4 mr-1" />
+              <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => setReportGeneratorOpen(true)}>
+                <Plus className="w-4 h-4 mr-1" />
                 Novo Relatório
               </Button>
             </div>
@@ -198,17 +228,17 @@ const Relatorios = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-20 flex flex-col">
+            <Button variant="outline" className="h-20 flex flex-col" onClick={() => setReportGeneratorOpen(true)}>
               <FileText className="w-6 h-6 mb-2 text-red-600" />
               <span className="text-sm">Relatório de Queimadas</span>
               <span className="text-xs text-gray-500">Último 30 dias</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col">
+            <Button variant="outline" className="h-20 flex flex-col" onClick={() => setReportGeneratorOpen(true)}>
               <BarChart3 className="w-6 h-6 mb-2 text-blue-600" />
               <span className="text-sm">Impacto na Saúde</span>
               <span className="text-xs text-gray-500">Última semana</span>
             </Button>
-            <Button variant="outline" className="h-20 flex flex-col">
+            <Button variant="outline" className="h-20 flex flex-col" onClick={() => setReportGeneratorOpen(true)}>
               <TrendingUp className="w-6 h-6 mb-2 text-green-600" />
               <span className="text-sm">Qualidade do Ar</span>
               <span className="text-xs text-gray-500">Hoje</span>
@@ -277,18 +307,18 @@ const Relatorios = () => {
                     <div className="flex space-x-2">
                       {report.status === 'finalizado' && (
                         <>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" onClick={() => openShareModal(report)}>
                             <Share2 className="w-3 h-3 mr-1" />
                             Compartilhar
                           </Button>
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setExportModalOpen(true)}>
                             <Download className="w-3 h-3 mr-1" />
                             Download
                           </Button>
                         </>
                       )}
                       {report.status === 'rascunho' && (
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => setReportGeneratorOpen(true)}>
                           <FileText className="w-3 h-3 mr-1" />
                           Editar
                         </Button>
@@ -352,6 +382,32 @@ const Relatorios = () => {
           </div>
         </CardContent>
       </Card>
+
+      <FilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApplyFilters={handleApplyFilters}
+        filterType="reports"
+      />
+
+      <ExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        dataType="reports"
+      />
+
+      <ShareModal
+        isOpen={shareModalState.isOpen}
+        onClose={() => setShareModalState({ isOpen: false, itemTitle: '', itemType: '' })}
+        itemTitle={shareModalState.itemTitle}
+        itemType={shareModalState.itemType}
+      />
+
+      <ReportGeneratorModal
+        isOpen={reportGeneratorOpen}
+        onClose={() => setReportGeneratorOpen(false)}
+        onGenerate={handleGenerateReport}
+      />
     </div>
   );
 };

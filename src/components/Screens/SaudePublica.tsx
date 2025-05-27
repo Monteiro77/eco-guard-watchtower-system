@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,9 +19,17 @@ import {
   TrendingUp,
   AlertTriangle,
   Building,
-  Pill
+  Pill,
+  Filter,
+  Download,
+  Share2,
+  Eye,
+  Edit
 } from 'lucide-react';
 import HealthReportModal from '@/components/Modals/HealthReportModal';
+import FilterModal from '@/components/Modals/FilterModal';
+import ExportModal from '@/components/Modals/ExportModal';
+import ShareModal from '@/components/Modals/ShareModal';
 
 const SaudePublica = () => {
   const [modalState, setModalState] = useState({
@@ -31,12 +38,32 @@ const SaudePublica = () => {
     data: null as any,
   });
 
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [shareModalState, setShareModalState] = useState({
+    isOpen: false,
+    itemTitle: '',
+    itemType: '',
+  });
+
   const openModal = (mode: 'create' | 'edit' | 'view', data: any = null) => {
     setModalState({ isOpen: true, mode, data });
   };
 
   const closeModal = () => {
     setModalState({ isOpen: false, mode: 'create', data: null });
+  };
+
+  const openShareModal = (hospital: any) => {
+    setShareModalState({
+      isOpen: true,
+      itemTitle: `Dados de ${hospital.hospital}`,
+      itemType: 'Relatório de Saúde',
+    });
+  };
+
+  const handleApplyFilters = (filters: any) => {
+    console.log('Aplicando filtros:', filters);
   };
 
   const healthData = [
@@ -94,10 +121,20 @@ const SaudePublica = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Saúde Pública</h1>
           <p className="text-gray-600">Monitoramento de impactos na saúde e capacidade hospitalar</p>
         </div>
-        <Button onClick={() => openModal('create')}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Relatório
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={() => setFilterModalOpen(true)}>
+            <Filter className="w-4 h-4 mr-2" />
+            Filtros
+          </Button>
+          <Button variant="outline" onClick={() => setExportModalOpen(true)}>
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
+          <Button onClick={() => openModal('create')}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Relatório
+          </Button>
+        </div>
       </div>
 
       {/* Métricas de saúde */}
@@ -272,14 +309,21 @@ const SaudePublica = () => {
                         size="sm"
                         onClick={() => openModal('view', hospital)}
                       >
-                        Ver Detalhes
+                        <Eye className="w-4 h-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm"
                         onClick={() => openModal('edit', hospital)}
                       >
-                        Editar
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => openShareModal(hospital)}
+                      >
+                        <Share2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -295,6 +339,26 @@ const SaudePublica = () => {
         onClose={closeModal}
         reportData={modalState.data}
         mode={modalState.mode}
+      />
+
+      <FilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApplyFilters={handleApplyFilters}
+        filterType="health"
+      />
+
+      <ExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        dataType="health"
+      />
+
+      <ShareModal
+        isOpen={shareModalState.isOpen}
+        onClose={() => setShareModalState({ isOpen: false, itemTitle: '', itemType: '' })}
+        itemTitle={shareModalState.itemTitle}
+        itemType={shareModalState.itemType}
       />
     </div>
   );

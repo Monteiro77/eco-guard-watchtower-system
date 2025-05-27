@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,9 +19,13 @@ import {
   Edit, 
   Trash2,
   Filter,
-  Download
+  Download,
+  Share2
 } from 'lucide-react';
 import AlertModal from '@/components/Modals/AlertModal';
+import FilterModal from '@/components/Modals/FilterModal';
+import ExportModal from '@/components/Modals/ExportModal';
+import ShareModal from '@/components/Modals/ShareModal';
 
 const AlertasAtivos = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,6 +33,14 @@ const AlertasAtivos = () => {
     isOpen: false,
     mode: 'create' as 'create' | 'edit' | 'view',
     data: null as any,
+  });
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [shareModalState, setShareModalState] = useState({
+    isOpen: false,
+    itemTitle: '',
+    itemType: '',
   });
 
   const alerts = [
@@ -89,6 +100,18 @@ const AlertasAtivos = () => {
 
   const closeModal = () => {
     setModalState({ isOpen: false, mode: 'create', data: null });
+  };
+
+  const openShareModal = (alert: any) => {
+    setShareModalState({
+      isOpen: true,
+      itemTitle: alert.title,
+      itemType: 'Alerta',
+    });
+  };
+
+  const handleApplyFilters = (filters: any) => {
+    console.log('Aplicando filtros:', filters);
   };
 
   const filteredAlerts = alerts.filter(alert =>
@@ -155,11 +178,11 @@ const AlertasAtivos = () => {
           <div className="flex justify-between items-center">
             <CardTitle>Lista de Alertas</CardTitle>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setFilterModalOpen(true)}>
                 <Filter className="w-4 h-4 mr-2" />
                 Filtros
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setExportModalOpen(true)}>
                 <Download className="w-4 h-4 mr-2" />
                 Exportar
               </Button>
@@ -223,6 +246,13 @@ const AlertasAtivos = () => {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => openShareModal(alert)}
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </Button>
                       <Button variant="ghost" size="sm">
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -240,6 +270,26 @@ const AlertasAtivos = () => {
         onClose={closeModal}
         alertData={modalState.data}
         mode={modalState.mode}
+      />
+
+      <FilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApplyFilters={handleApplyFilters}
+        filterType="alerts"
+      />
+
+      <ExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        dataType="alerts"
+      />
+
+      <ShareModal
+        isOpen={shareModalState.isOpen}
+        onClose={() => setShareModalState({ isOpen: false, itemTitle: '', itemType: '' })}
+        itemTitle={shareModalState.itemTitle}
+        itemType={shareModalState.itemType}
       />
     </div>
   );

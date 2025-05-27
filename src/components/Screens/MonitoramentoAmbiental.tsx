@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,23 +21,49 @@ import {
   BarChart3,
   MapPin,
   Battery,
-  Signal
+  Signal,
+  Filter,
+  Download
 } from 'lucide-react';
 import DroneModal from '@/components/Modals/DroneModal';
+import EnvironmentalStationModal from '@/components/Modals/EnvironmentalStationModal';
+import FilterModal from '@/components/Modals/FilterModal';
+import ExportModal from '@/components/Modals/ExportModal';
 
 const MonitoramentoAmbiental = () => {
-  const [modalState, setModalState] = useState({
+  const [droneModalState, setDroneModalState] = useState({
     isOpen: false,
     mode: 'create' as 'create' | 'edit' | 'view',
     data: null as any,
   });
 
-  const openModal = (mode: 'create' | 'edit' | 'view', data: any = null) => {
-    setModalState({ isOpen: true, mode, data });
+  const [stationModalState, setStationModalState] = useState({
+    isOpen: false,
+    mode: 'create' as 'create' | 'edit' | 'view',
+    data: null as any,
+  });
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+
+  const openDroneModal = (mode: 'create' | 'edit' | 'view', data: any = null) => {
+    setDroneModalState({ isOpen: true, mode, data });
   };
 
-  const closeModal = () => {
-    setModalState({ isOpen: false, mode: 'create', data: null });
+  const closeDroneModal = () => {
+    setDroneModalState({ isOpen: false, mode: 'create', data: null });
+  };
+
+  const openStationModal = (mode: 'create' | 'edit' | 'view', data: any = null) => {
+    setStationModalState({ isOpen: true, mode, data });
+  };
+
+  const closeStationModal = () => {
+    setStationModalState({ isOpen: false, mode: 'create', data: null });
+  };
+
+  const handleApplyFilters = (filters: any) => {
+    console.log('Aplicando filtros:', filters);
   };
 
   const drones = [
@@ -110,11 +135,15 @@ const MonitoramentoAmbiental = () => {
           <p className="text-gray-600">Dados em tempo real de sensores e drones de monitoramento</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
-            <Settings className="w-4 h-4 mr-2" />
-            Configurar
+          <Button variant="outline" onClick={() => setFilterModalOpen(true)}>
+            <Filter className="w-4 h-4 mr-2" />
+            Filtros
           </Button>
-          <Button onClick={() => openModal('create')}>
+          <Button variant="outline" onClick={() => setExportModalOpen(true)}>
+            <Download className="w-4 h-4 mr-2" />
+            Exportar
+          </Button>
+          <Button onClick={() => openDroneModal('create')}>
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Drone
           </Button>
@@ -232,14 +261,14 @@ const MonitoramentoAmbiental = () => {
                       variant="outline" 
                       size="sm" 
                       className="flex-1"
-                      onClick={() => openModal('view', drone)}
+                      onClick={() => openDroneModal('view', drone)}
                     >
                       Ver Detalhes
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => openModal('edit', drone)}
+                      onClick={() => openDroneModal('edit', drone)}
                     >
                       <Settings className="w-4 h-4" />
                     </Button>
@@ -254,7 +283,13 @@ const MonitoramentoAmbiental = () => {
       {/* Sensores ambientais */}
       <Card>
         <CardHeader>
-          <CardTitle>Estações de Monitoramento</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Estações de Monitoramento</CardTitle>
+            <Button onClick={() => openStationModal('create')} size="sm">
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Estação
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -290,9 +325,22 @@ const MonitoramentoAmbiental = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
-                        <Settings className="w-4 h-4" />
-                      </Button>
+                      <div className="flex space-x-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => openStationModal('view', sensor)}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => openStationModal('edit', sensor)}
+                        >
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -303,10 +351,30 @@ const MonitoramentoAmbiental = () => {
       </Card>
 
       <DroneModal
-        isOpen={modalState.isOpen}
-        onClose={closeModal}
-        droneData={modalState.data}
-        mode={modalState.mode}
+        isOpen={droneModalState.isOpen}
+        onClose={closeDroneModal}
+        droneData={droneModalState.data}
+        mode={droneModalState.mode}
+      />
+
+      <EnvironmentalStationModal
+        isOpen={stationModalState.isOpen}
+        onClose={closeStationModal}
+        stationData={stationModalState.data}
+        mode={stationModalState.mode}
+      />
+
+      <FilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApplyFilters={handleApplyFilters}
+        filterType="environmental"
+      />
+
+      <ExportModal
+        isOpen={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        dataType="environmental"
       />
     </div>
   );
